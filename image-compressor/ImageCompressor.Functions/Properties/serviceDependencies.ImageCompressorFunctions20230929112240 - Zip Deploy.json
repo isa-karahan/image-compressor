@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "appInsights1": {
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/microsoft.insights/components/ImageCompressorFunctions",
+      "type": "appInsights.azure",
+      "connectionId": "APPLICATIONINSIGHTS_CONNECTION_STRING"
+    },
+    "storage1": {
+      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourcegroups/[parameters('resourceGroupName')]/providers/Microsoft.Web/sites/ImageCompressorFunctions20230929112240/providers/Microsoft.ServiceLinker/linkers/AzureStorage_D748A6EB8B, /subscriptions/fcad7157-af2b-42b1-8e90-c654ab2628d7/resourcegroups/DefaultResourceGroup-WEU/providers/Microsoft.Web/sites/ImageCompressorFunctions20230929112240/providers/Microsoft.ServiceLinker/linkers/AzureStorage_528E44111D",
+      "secretStore": "AzureAppSettings",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Storage/storageAccounts/azurecampstorage",
+      "type": "storage.azure",
+      "connectionId": "AzureStorage"
+    }
+  }
+}

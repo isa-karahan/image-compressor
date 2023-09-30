@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.container {
+  min-height: calc(100vh - 80px);
+  padding: 1rem;
+}
+
+.data-grid-container {
+  min-height: 500px;
+  height: calc(100vh - 200px);
+}
