@@ -6,7 +6,7 @@ public interface INoSqlStorage<TEntity>
 {
     Task<TEntity> AddAsync(TEntity entity);
 
-    Task DeleteAsync(string rowKey, string partitionKey);
+    Task<TEntity> DeleteAsync(string rowKey, string partitionKey);
 
     Task<TEntity> UpdateAsync(TEntity entity);
 

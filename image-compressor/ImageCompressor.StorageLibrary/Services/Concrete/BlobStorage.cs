@@ -74,10 +74,12 @@ public sealed class BlobStorage : IBlobStorage
 
         var blobs = containerClient.GetBlobs();
 
-        blobs.ToList().ForEach(x =>
-        {
-            blobNames.Add(x.Name);
-        });
+        blobs
+            .ToList()
+            .ForEach(x =>
+            {
+                blobNames.Add(x.Name);
+            });
 
         return blobNames;
     }
@@ -110,7 +112,9 @@ public sealed class BlobStorage : IBlobStorage
 
         await containerClient.CreateIfNotExistsAsync();
 
-        await containerClient.SetAccessPolicyAsync(Azure.Storage.Blobs.Models.PublicAccessType.BlobContainer);
+        await containerClient.SetAccessPolicyAsync(
+            Azure.Storage.Blobs.Models.PublicAccessType.BlobContainer
+        );
 
         var blobClient = containerClient.GetBlobClient(fileName);
 

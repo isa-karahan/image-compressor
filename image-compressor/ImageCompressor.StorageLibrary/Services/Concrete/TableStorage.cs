@@ -6,7 +6,8 @@ using System.Linq.Expressions;
 
 namespace ImageCompressor.StorageLibrary.Services.Concrete;
 
-public sealed class TableStorage<TEntity> : INoSqlStorage<TEntity> where TEntity : BaseTableEntity
+public sealed class TableStorage<TEntity> : INoSqlStorage<TEntity>
+    where TEntity : BaseTableEntity
 {
     private readonly TableClient _tableClient;
 
@@ -28,14 +29,15 @@ public sealed class TableStorage<TEntity> : INoSqlStorage<TEntity> where TEntity
 
     public async Task<List<TEntity>> All()
     {
-        return await Task.FromResult(_tableClient
-                                        .Query<TEntity>()
-                                        .ToList());
+        return await Task.FromResult(_tableClient.Query<TEntity>().ToList());
     }
 
-    public async Task DeleteAsync(string rowKey, string partitionKey)
+    public async Task<TEntity> DeleteAsync(string rowKey, string partitionKey)
     {
+        var entity = await GetAsync(rowKey, partitionKey);
         await _tableClient.DeleteEntityAsync(partitionKey, rowKey);
+
+        return entity;
     }
 
     public async Task<TEntity> GetAsync(string rowKey, string partitionKey)
@@ -47,10 +49,9 @@ public sealed class TableStorage<TEntity> : INoSqlStorage<TEntity> where TEntity
 
     public async Task<List<TEntity>> Query(Expression<Func<TEntity, bool>> query)
     {
-        return await Task.FromResult(_tableClient.Query<TEntity>()
-                                                 .AsQueryable()
-                                                 .Where(query)
-                                                 .ToList());
+        return await Task.FromResult(
+            _tableClient.Query<TEntity>().AsQueryable().Where(query).ToList()
+        );
     }
 
     public async Task<TEntity> UpdateAsync(TEntity entity)

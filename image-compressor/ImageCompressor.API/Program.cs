@@ -23,9 +23,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors(p => p.WithOrigins("http://localhost:3000")
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials());
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials());
 
 app.MapCarter();
 app.MapHub<NotificationHub>("/api/hubs");

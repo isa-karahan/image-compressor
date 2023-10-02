@@ -1,4 +1,5 @@
 ﻿using Carter;
+using ImageCompressor.API.DTOs;
 using ImageCompressor.API.Results;
 using ImageCompressor.StorageLibrary.Constants;
 using ImageCompressor.StorageLibrary.Entities.Concrete;
@@ -13,79 +14,114 @@ public class ImageModule : ICarterModule
     {
         var group = app.MapGroup("api/images");
 
-        group.MapGet("", async (INoSqlStorage<Image> imageStorage) =>
-        {
-            var images = await imageStorage.All();
-
-            return Result.Success(images);
-        });
-
-        group.MapGet("/users/{id}", async (string id, INoSqlStorage<Image> imageStorage) =>
-        {
-            var userImages = await imageStorage
-                .Query(image => image.PartitionKey == id);
-
-            return Result.Success(userImages);
-        });
-
-        group.MapPost("/users/{id}", async (
-            string id,
-            [FromQuery] string clientId,
-            [FromForm] IFormFileCollection pictures,
-            IAzureQueue<ImageCompressorQueue> queue,
-            INoSqlStorage<Image> imageStorage,
-            IBlobStorage blobStorage) =>
-        {
-            var queueMessage = new ImageCompressorQueue
+        group.MapGet(
+            "",
+            async (INoSqlStorage<Image> imageStorage, INoSqlStorage<User> userStorage) =>
             {
-                UserId = id,
-                ClientId = clientId,
-            };
+                var images = await imageStorage.All();
 
-            foreach (var item in pictures)
-            {
-                var image = new Image
+                var imageDtos = new List<ImageDto>(images.Count);
+
+                foreach (var image in images)
                 {
-                    PartitionKey = id.ToString(),
-                    ETag = Azure.ETag.All,
-                    Timestamp = DateTime.UtcNow,
-                    IsCompressed = false,
-                    RawSize = item.Length / 1024,
-                };
+                    var user = await userStorage.GetAsync(
+                        image.PartitionKey,
+                        TablePartitionKeys.Users
+                    );
 
-                image.Name = $"{image.RowKey}{Path.GetExtension(item.FileName)}";
-                image.SetURL(blobStorage.BlobUrl);
+                    imageDtos.Add(
+                        new ImageDto
+                        {
+                            CompressedSize = image.CompressedSize,
+                            IsCompressed = image.IsCompressed,
+                            Name = image.Name,
+                            PartitionKey = image.PartitionKey,
+                            RawSize = image.RawSize,
+                            RowKey = image.RowKey,
+                            URL = image.URL,
+                            UserName = $"{user.Name} {user.Surname}"
+                        }
+                    );
+                }
 
-                await blobStorage.UploadAsync(item.OpenReadStream(), image.Name, Blobs.RawImages);
-
-                await imageStorage.AddAsync(image);
-
-                queueMessage.Images.Add(new QueueImage
-                {
-                    ImageId = image.RowKey,
-                    ImageName = image.Name,
-                });
+                return Result.Success(imageDtos);
             }
+        );
 
-            await queue.SendMessageAsync(queueMessage);
+        group.MapGet(
+            "/users/{id}",
+            async (string id, INoSqlStorage<Image> imageStorage) =>
+            {
+                var userImages = await imageStorage.Query(image => image.PartitionKey == id);
 
-            return Result.Success("Images uploaded.");
-        });
+                return Result.Success(userImages);
+            }
+        );
 
-        group.MapDelete("", async ([FromBody] Image image,
-            INoSqlStorage<Image> imageStorage,
-            IBlobStorage blobStorage) =>
-        {
-            ArgumentNullException.ThrowIfNull(image);
+        group.MapPost(
+            "/users/{id}",
+            async (
+                string id,
+                [FromQuery] string clientId,
+                [FromForm] IFormFileCollection pictures,
+                IAzureQueue<ImageCompressorQueue> queue,
+                INoSqlStorage<Image> imageStorage,
+                IBlobStorage blobStorage
+            ) =>
+            {
+                var queueMessage = new ImageCompressorQueue { UserId = id, ClientId = clientId, };
 
-            await imageStorage.DeleteAsync(image.RowKey, image.PartitionKey);
+                foreach (var item in pictures)
+                {
+                    var image = new Image
+                    {
+                        PartitionKey = id.ToString(),
+                        ETag = Azure.ETag.All,
+                        Timestamp = DateTime.UtcNow,
+                        IsCompressed = false,
+                        RawSize = item.Length / 1024,
+                    };
 
-            await blobStorage.DeleteAsync(image.Name, Blobs.RawImages);
+                    image.Name = $"{image.RowKey}{Path.GetExtension(item.FileName)}";
+                    image.SetURL(blobStorage.BlobUrl);
 
-            if (image.IsCompressed)
-                await blobStorage.DeleteAsync(image.Name, Blobs.CompressedImages);
+                    await blobStorage.UploadAsync(
+                        item.OpenReadStream(),
+                        image.Name,
+                        Blobs.RawImages
+                    );
 
-            return Result.Success("Images deleted.");
-        });
+                    await imageStorage.AddAsync(image);
+
+                    queueMessage.Images.Add(
+                        new QueueImage { ImageId = image.RowKey, ImageName = image.Name, }
+                    );
+                }
+
+                await queue.SendMessageAsync(queueMessage);
+
+                return Result.Success("Images uploaded.");
+            }
+        );
+
+        group.MapDelete(
+            "",
+            async (
+                string rowKey,
+                string partitionKey,
+                INoSqlStorage<Image> imageStorage,
+                IBlobStorage blobStorage
+            ) =>
+            {
+                var image = await imageStorage.DeleteAsync(rowKey, partitionKey);
+
+                await blobStorage.DeleteAsync(image.Name, Blobs.RawImages);
+
+                if (image.IsCompressed)
+                    await blobStorage.DeleteAsync(image.Name, Blobs.CompressedImages);
+
+                return Result.Success("Images deleted.");
+            }
+        );
     }
 }

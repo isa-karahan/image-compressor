@@ -30,8 +30,14 @@ public class Result : IResult
         return new Result(message, false);
     }
 
-    public override string ToString() => JsonConvert.SerializeObject(this,
-        new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
+    public override string ToString() =>
+        JsonConvert.SerializeObject(
+            this,
+            new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            }
+        );
 }
 
 public class Result<T> : IResult
@@ -39,6 +45,7 @@ public class Result<T> : IResult
     public T Data { get; }
     public bool IsSuccess { get; }
     public string Message { get; }
+
     public Result(T data, string message = "", bool success = true)
     {
         Data = data;
@@ -46,6 +53,12 @@ public class Result<T> : IResult
         Message = message;
     }
 
-    public override string ToString() => JsonConvert.SerializeObject(this,
-                new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
+    public override string ToString() =>
+        JsonConvert.SerializeObject(
+            this,
+            new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            }
+        );
 }

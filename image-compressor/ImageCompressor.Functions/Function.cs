@@ -10,7 +10,7 @@ namespace ImageCompressor.Functions;
 [SupportedOSPlatform("windows")]
 public class Function
 {
-    private const int CompressQuality = 10;
+    private const int CompressQuality = 70;
 
     private readonly IBlobStorage _blobStorage;
     private readonly ILogger<Function> _logger;
@@ -19,7 +19,8 @@ public class Function
     public Function(
         IBlobStorage blobStorage,
         ILogger<Function> logger,
-        INoSqlStorage<Image> imageStorage)
+        INoSqlStorage<Image> imageStorage
+    )
     {
         _logger = logger;
         _blobStorage = blobStorage;
@@ -28,7 +29,8 @@ public class Function
 
     [Function(nameof(Function))]
     public async Task Run(
-        [QueueTrigger("imagecompressorqueue", Connection = "AzureStorage")] ImageCompressorQueue queueMessage
+        [QueueTrigger("imagecompressorqueue", Connection = "AzureStorage")]
+            ImageCompressorQueue queueMessage
     )
     {
         foreach (var queueImage in queueMessage.Images)
@@ -42,10 +44,13 @@ public class Function
             await _blobStorage.UploadAsync(
                 compressedImageStream,
                 queueImage.ImageName,
-                Blobs.CompressedImages);
+                Blobs.CompressedImages
+            );
 
             image.IsCompressed = true;
             image.CompressedSize = compressedImageStream.Length / 1024;
+
+            image.SetURL(_blobStorage.BlobUrl);
 
             await _imageStorage.UpdateAsync(image);
         }
@@ -60,6 +65,8 @@ public class Function
 
         var httpClient = new HttpClient();
 
-        await httpClient.GetAsync($"https://localhost:7257/api/notifications/{queueMessage.ClientId}");
+        await httpClient.GetAsync(
+            $"https://localhost:7257/api/notifications/{queueMessage.ClientId}"
+        );
     }
 }

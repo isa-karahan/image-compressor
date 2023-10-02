@@ -8,7 +8,8 @@ using System.Text.Json;
 
 namespace ImageCompressor.StorageLibrary.Services.Concrete;
 
-public sealed class AzureQueue<T> : IAzureQueue<T> where T : IQueue
+public sealed class AzureQueue<T> : IAzureQueue<T>
+    where T : IQueue
 {
     private readonly QueueClient _queueClient;
 
@@ -30,7 +31,9 @@ public sealed class AzureQueue<T> : IAzureQueue<T> where T : IQueue
 
         if (properties.ApproximateMessagesCount > 0)
         {
-            QueueMessage queueMessage = await _queueClient.ReceiveMessageAsync(TimeSpan.FromMinutes(1));
+            QueueMessage queueMessage = await _queueClient.ReceiveMessageAsync(
+                TimeSpan.FromMinutes(1)
+            );
 
             if (queueMessage != null)
                 return queueMessage;
