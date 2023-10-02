@@ -1,7 +1,10 @@
 "use client";
 
-import React, { useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import * as yup from "yup";
+import { toast } from "react-toastify";
+import { DataGrid } from "@mui/x-data-grid";
+import { HubConnectionBuilder } from "@microsoft/signalr";
 import { ErrorMessage, Formik, Field, Form } from "formik";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import {
@@ -14,15 +17,41 @@ import {
   Typography,
 } from "@mui/material";
 
+import { publicRuntimeConfig } from "@/../next.config";
 import { User } from "@/types";
-import { DataGrid } from "@mui/x-data-grid";
+import { useGetUsers, useUploadImage } from "@/hooks";
 
-type ImageUploadProps = {
-  users: User[];
-  onSubmit: (values: { userId: string; images: File[] }) => void;
-};
+export function ImageUpload({ onComplete }: { onComplete: () => void }) {
+  const { data: users, loading } = useGetUsers();
+  const uploadImage = useUploadImage();
 
-export function ImageUpload({ users, onSubmit }: ImageUploadProps) {
+  const connection = useMemo(
+    () =>
+      new HubConnectionBuilder()
+        .withUrl(`${publicRuntimeConfig?.apiURL}/hubs`)
+        .withAutomaticReconnect()
+        .build(),
+    []
+  );
+
+  const startConnection = async () => {
+    try {
+      await connection.start();
+
+      connection.on("NotifyCompleteCompressingProcess", () => {
+        toast.success("Image compression process is completed.");
+        onComplete();
+      });
+    } catch (err) {
+      const error = err as Error;
+      toast.error(error.message);
+    }
+  };
+
+  useEffect(() => {
+    startConnection();
+  }, []);
+
   const formikConfig = useMemo(
     () => ({
       initialValues: {
@@ -49,40 +78,59 @@ export function ImageUpload({ users, onSubmit }: ImageUploadProps) {
         userId: yup.string().required("User Id field cannot be empty"),
       }),
     }),
-    [onSubmit]
+    []
   );
+
+  const handleImageUpload = useCallback(async (values: any) => {
+    const formData = new FormData();
+
+    values.images.forEach((image: File) => {
+      formData.append(image.name, image);
+    });
+
+    await uploadImage({
+      data: formData,
+      id: values.userId,
+      params: { clientId: connection.connectionId },
+    });
+
+    onComplete();
+  }, []);
 
   return (
     <Container maxWidth="md" sx={{ minHeight: 500 }}>
-      <Formik {...formikConfig} onSubmit={onSubmit}>
+      <Formik {...formikConfig} onSubmit={handleImageUpload}>
         {({ values, errors, touched, handleBlur, setFieldValue }) => (
           <Form>
             <Grid container spacing={2}>
               <Grid item xs={12}>
-                <Autocomplete
-                  disablePortal
-                  size="small"
-                  options={users}
-                  onBlur={handleBlur}
-                  onChange={(_, value) =>
-                    setFieldValue("userId", value?.rowKey)
-                  }
-                  getOptionLabel={(user: User) =>
-                    `${user.name} ${user.surname} - ${user.email}`
-                  }
-                  renderInput={(params) => (
-                    <Field
-                      {...params}
-                      as={TextField}
-                      name="fieldName"
-                      id="fieldName"
-                      value={values.userId}
-                      onBlur={handleBlur}
-                      error={touched.userId && errors.userId !== undefined}
-                      helperText={touched.userId && errors.userId}
-                    />
-                  )}
-                />
+                {users && (
+                  <Autocomplete
+                    disablePortal
+                    size="small"
+                    loading={loading}
+                    options={users}
+                    onBlur={handleBlur}
+                    onChange={(_, value) =>
+                      setFieldValue("userId", value?.rowKey)
+                    }
+                    getOptionLabel={(user: User) =>
+                      `${user.name} ${user.surname} - ${user.email}`
+                    }
+                    renderInput={(params) => (
+                      <Field
+                        {...params}
+                        as={TextField}
+                        name="fieldName"
+                        id="fieldName"
+                        value={values.userId}
+                        onBlur={handleBlur}
+                        error={touched.userId && errors.userId !== undefined}
+                        helperText={touched.userId && errors.userId}
+                      />
+                    )}
+                  />
+                )}
               </Grid>
               <Grid item xs>
                 <IconButton color="primary" component="label">

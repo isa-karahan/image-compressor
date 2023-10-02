@@ -1,141 +1,145 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import NextImage from "next/image";
-import { GridCloseIcon } from "@mui/x-data-grid";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { DataGrid, GridCloseIcon } from "@mui/x-data-grid";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
+import Done from "@mui/icons-material/Done";
+import Close from "@mui/icons-material/Close";
 import {
-  Autocomplete,
   Box,
   Button,
-  Checkbox,
   Dialog,
   DialogContent,
   DialogTitle,
-  FormControlLabel,
   Grid,
   IconButton,
-  TextField,
-  Typography,
 } from "@mui/material";
 
-import { Image, User } from "@/types";
-import {
-  useDeleteImage,
-  useGetImages,
-  useGetUsers,
-  useNotifications,
-  useUploadImage,
-} from "@/hooks";
+import { Image } from "@/types";
+import { useDeleteImage, useGetImages } from "@/hooks";
 import { ImageUpload } from "@/components";
 
 export default function Images() {
   const [open, setOpen] = useState(false);
-  const [allImages, setAllImages] = useState(true);
-  const [user, setUser] = useState<User | null>();
+  const [selectedImage, setSelectedImage] = useState("");
 
-  const { data: images, refetch } = useGetImages(allImages ? "" : user?.rowKey);
-  const { data: users } = useGetUsers();
+  const { data: images, refetch, loading } = useGetImages();
   const deleteImage = useDeleteImage();
-  const uploadImage = useUploadImage();
-  const connection = useNotifications(refetch);
-
-  const compressedImages = images?.filter((i) => i.isCompressed);
-  const rawImages = images?.filter((i) => !i.isCompressed);
 
   const handleClose = () => {
     setOpen(false);
   };
 
-  const handleImageUpload = async (values: any) => {
-    const formData = new FormData();
-
-    values.images.forEach((image: File) => {
-      formData.append(image.name, image);
-    });
-
-    await uploadImage({
-      data: formData,
-      id: values.userId,
-      params: { clientId: connection.connectionId },
-    });
-
+  const onUploadCompleted = () => {
     setOpen(false);
+    refetch();
   };
 
-  const mapImages = useCallback((images: Image[]) => {
-    return images?.map(
-      (image) =>
-        image.url && (
-          <Grid item key={image.name} xs={4} position="relative">
+  const columns = [
+    {
+      field: "url",
+      headerName: "Image",
+      width: 200,
+      renderCell: ({ row }: { row: Image }) => (
+        <>
+          <NextImage
+            src={row.url}
+            alt={row.name}
+            width={0}
+            height={0}
+            sizes="100vw"
+            style={{ width: "100%", height: "auto" }}
+            loading="lazy"
+            onClick={() => setSelectedImage(row.rowKey)}
+          />
+          <Dialog open={selectedImage == row.rowKey}>
             <IconButton
-              color="warning"
+              onClick={() => setSelectedImage("")}
               sx={{
                 position: "absolute",
-                right: 3,
-                top: 15,
-                opacity: 0.8,
-                ":hover": {
-                  opacity: 1,
-                  borderRadius: "50%",
-                  backgroundColor: "white",
-                },
-              }}
-              onClick={async () => {
-                await deleteImage({ data: image });
-                refetch();
+                right: 8,
+                top: 8,
+                color: (theme) => theme.palette.grey[500],
               }}
             >
-              <DeleteIcon />
+              <GridCloseIcon />
             </IconButton>
-            <NextImage
-              src={image.url}
-              alt={image.name}
-              width={400}
-              height={400}
-              loading="lazy"
-            />
-          </Grid>
-        )
-    );
-  }, []);
+            <DialogContent sx={{ mt: "1.5rem" }}>
+              <NextImage
+                src={row.url}
+                alt={row.name}
+                width={0}
+                height={0}
+                sizes="100vw"
+                style={{ width: "100%", height: "auto" }}
+                loading="lazy"
+              />
+            </DialogContent>
+          </Dialog>
+        </>
+      ),
+    },
+    { field: "userName", headerName: "User Name", width: 150 },
+    {
+      field: "isCompressed",
+      headerName: "Compressed",
+      width: 120,
+      renderCell: ({ row }: { row: Image }) =>
+        row.isCompressed ? <Done /> : <Close />,
+    },
+    { field: "rawSize", headerName: "Raw Size (KB)", width: 150 },
+    {
+      field: "compressedSize",
+      headerName: "Compressed Size (KB)",
+      width: 180,
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      width: 220,
+      renderCell: ({ row }: { row: Image }) => (
+        <Box sx={{ display: "flex", gap: "10px" }}>
+          <Button
+            variant="outlined"
+            color="error"
+            onClick={async () => {
+              await deleteImage({
+                params: {
+                  rowKey: row.rowKey,
+                  partitionKey: row.partitionKey,
+                },
+              });
+
+              refetch();
+            }}
+          >
+            Delete
+          </Button>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={() => {
+              const link = document.createElement("a");
+              link.href = row.url;
+              link.download = row.name;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }}
+          >
+            Download
+          </Button>
+        </Box>
+      ),
+    },
+  ];
 
   return (
     <Box>
-      <Grid container spacing={2} marginY={2}>
-        <Grid item xs={6} md={2} sx={{ display: "flex", my: "auto" }}>
-          <Typography>Filter Images</Typography>
-        </Grid>
-        <Grid item xs={6} md={2} sx={{ display: "flex", my: "auto" }}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={allImages}
-                onChange={(_, checked) => setAllImages(checked)}
-              />
-            }
-            label="All Images"
-          />
-        </Grid>
-        <Grid item xs md sx={{ display: "flex", my: "auto" }}>
-          <Autocomplete
-            fullWidth
-            disablePortal
-            size="small"
-            value={user}
-            disabled={allImages}
-            options={users ?? []}
-            onChange={(_e, value) => setUser(value)}
-            renderInput={(params) => <TextField {...params} label="Users" />}
-            getOptionLabel={(user) =>
-              `${user.name} ${user.surname} - ${user.email}`
-            }
-          />
-        </Grid>
-        <Grid item xs={4} md={2}>
+      <Grid container spacing={1}>
+        <Grid item xs={12}>
           <Button
-            type="submit"
             sx={{ mt: 0.3 }}
             variant="outlined"
             onClick={() => setOpen(true)}
@@ -144,30 +148,17 @@ export default function Images() {
             Upload Image
           </Button>
         </Grid>
-        {rawImages && rawImages?.length !== 0 && (
-          <Grid container item spacing={2}>
-            <Grid item xs>
-              <Typography textAlign="center" fontSize={18}>
-                Raw Images
-              </Typography>
-            </Grid>
-            <Grid container item spacing={2}>
-              {mapImages(rawImages)}
-            </Grid>
-          </Grid>
-        )}
-        {compressedImages && compressedImages?.length !== 0 && (
-          <Grid container item spacing={2}>
-            <Grid item xs>
-              <Typography textAlign="center" fontSize={18}>
-                Compressed Images
-              </Typography>
-            </Grid>
-            <Grid container item spacing={2}>
-              {mapImages(compressedImages)}
-            </Grid>
-          </Grid>
-        )}
+        <Grid item xs={12} className="data-grid-container">
+          <DataGrid
+            columns={columns}
+            rows={images ?? []}
+            loading={loading}
+            getRowId={(row) => row.rowKey}
+            autoPageSize
+            disableRowSelectionOnClick
+            rowHeight={120}
+          />
+        </Grid>
       </Grid>
       <Dialog open={open}>
         <DialogTitle sx={{ m: 0, p: 2, textAlign: "center" }}>
@@ -185,7 +176,7 @@ export default function Images() {
           <GridCloseIcon />
         </IconButton>
         <DialogContent>
-          <ImageUpload users={users ?? []} onSubmit={handleImageUpload} />
+          <ImageUpload onComplete={onUploadCompleted} />
         </DialogContent>
       </Dialog>
     </Box>
