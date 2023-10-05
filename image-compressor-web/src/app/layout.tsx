@@ -1,9 +1,12 @@
+"use client";
+
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Container from "@mui/material/Container";
 import { ToastContainer } from "react-toastify";
+import { ThemeProvider } from "next-themes";
 
-import { ResponsiveAppBar } from "@/components";
+import { MuiThemeProvider, ResponsiveAppBar } from "@/components";
 
 import "./globals.css";
 import "react-toastify/dist/ReactToastify.css";
@@ -22,11 +25,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ResponsiveAppBar />
-        <Container>
-          <ToastContainer position="top-right" />
-          <div className="container">{children}</div>
-        </Container>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <MuiThemeProvider>
+            <ResponsiveAppBar />
+            <Container>
+              <ToastContainer position="top-right" />
+              <div className="container">{children}</div>
+            </Container>
+          </MuiThemeProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

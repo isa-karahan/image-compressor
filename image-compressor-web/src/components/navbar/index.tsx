@@ -1,17 +1,20 @@
 "use client";
 
-import * as React from "react";
-import AppBar from "@mui/material/AppBar";
+import { MouseEvent, useState } from "react";
+import Link from "next/link";
 import Box from "@mui/material/Box";
+import Menu from "@mui/material/Menu";
+import { useTheme } from "next-themes";
+import AppBar from "@mui/material/AppBar";
+import Button from "@mui/material/Button";
 import Toolbar from "@mui/material/Toolbar";
+import MenuItem from "@mui/material/MenuItem";
+import Container from "@mui/material/Container";
+import MenuIcon from "@mui/icons-material/Menu";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
-import Menu from "@mui/material/Menu";
-import MenuIcon from "@mui/icons-material/Menu";
-import Container from "@mui/material/Container";
-import Button from "@mui/material/Button";
-import MenuItem from "@mui/material/MenuItem";
-import Link from "next/link";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+import LightModeIcon from "@mui/icons-material/LightMode";
 
 const pages = [
   { name: "Users", url: "/users" },
@@ -20,12 +23,19 @@ const pages = [
 ];
 
 export function ResponsiveAppBar() {
-  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(
-    null
-  );
-  const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
+  const { theme, setTheme } = useTheme();
+  const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
+
+  const isLightMode = theme === "light";
+
+  const handleThemeChange = () => {
+    setTheme(isLightMode ? "dark" : "light");
+  };
+
+  const handleOpenNavMenu = (event: MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
   };
+
   const handleCloseNavMenu = () => {
     setAnchorElNav(null);
   };
@@ -117,6 +127,13 @@ export function ResponsiveAppBar() {
               </Link>
             ))}
           </Box>
+
+          <IconButton
+            className="w-fit p-2 hover:scale-110 active:scale-100 duration-200 text-white"
+            onClick={handleThemeChange}
+          >
+            {isLightMode ? <LightModeIcon /> : <DarkModeIcon />}
+          </IconButton>
         </Toolbar>
       </Container>
     </AppBar>
