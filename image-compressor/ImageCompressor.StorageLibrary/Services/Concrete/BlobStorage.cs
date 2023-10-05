@@ -54,9 +54,7 @@ public sealed class BlobStorage : IBlobStorage
 
         using var sr = new StreamReader(info.Value.Content);
 
-        string line = string.Empty;
-
-        while ((line = sr.ReadLine()) != null)
+        while (await sr.ReadLineAsync() is { } line)
         {
             logs.Add(line);
         }
@@ -95,11 +93,11 @@ public sealed class BlobStorage : IBlobStorage
         await appendClient.CreateIfNotExistsAsync();
 
         using var ms = new MemoryStream();
-        using var sw = new StreamWriter(ms);
+        await using var sw = new StreamWriter(ms);
 
-        sw.Write($"{DateTime.Now} : {text} \n ");
+        await sw.WriteAsync($"{DateTime.Now} : {text} \n ");
 
-        sw.Flush();
+        await sw.FlushAsync();
 
         ms.Position = 0;
 

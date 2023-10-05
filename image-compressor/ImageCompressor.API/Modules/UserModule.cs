@@ -25,7 +25,7 @@ public class UserModule : ICarterModule
             "/{id}",
             async (string id, INoSqlStorage<User> userStorage) =>
             {
-                var user = await userStorage.GetAsync(id.ToString(), TablePartitionKeys.Users);
+                var user = await userStorage.GetAsync(id, TablePartitionKeys.Users);
                 return Result.Success(user);
             }
         );

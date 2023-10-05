@@ -1,4 +1,5 @@
 "use client";
+
 import * as React from "react";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
@@ -12,7 +13,11 @@ import Button from "@mui/material/Button";
 import MenuItem from "@mui/material/MenuItem";
 import Link from "next/link";
 
-const pages = ["Users", "Images"];
+const pages = [
+  { name: "Users", url: "/users" },
+  { name: "Images", url: "/images" },
+  { name: "Image Logs", url: "/images/logs" },
+];
 
 export function ResponsiveAppBar() {
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(
@@ -76,10 +81,10 @@ export function ResponsiveAppBar() {
                 display: { xs: "block", md: "none" },
               }}
             >
-              {pages.map((page) => (
-                <Link key={page} href={`/${page.toLowerCase()}`}>
-                  <MenuItem key={page} onClick={handleCloseNavMenu}>
-                    <Typography textAlign="center">{page}</Typography>
+              {pages.map(({ name, url }) => (
+                <Link key={name} href={url}>
+                  <MenuItem onClick={handleCloseNavMenu}>
+                    <Typography textAlign="center">{name}</Typography>
                   </MenuItem>
                 </Link>
               ))}
@@ -104,10 +109,10 @@ export function ResponsiveAppBar() {
             Image Compressor
           </Typography>
           <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
-            {pages.map((page) => (
-              <Link key={page} href={`/${page.toLowerCase()}`}>
+            {pages.map(({ name, url }) => (
+              <Link key={name} href={url}>
                 <Button sx={{ my: 2, color: "white", display: "block" }}>
-                  {page}
+                  {name}
                 </Button>
               </Link>
             ))}

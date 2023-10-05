@@ -1,12 +1,5 @@
 ﻿namespace ImageCompressor.StorageLibrary.Constants;
 
-public enum Gender
-{
-    Male,
-    Female,
-    Other
-}
-
 public enum Profession
 {
     Doctor,

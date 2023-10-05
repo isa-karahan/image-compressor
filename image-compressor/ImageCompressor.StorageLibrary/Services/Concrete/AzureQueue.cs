@@ -29,15 +29,14 @@ public sealed class AzureQueue<T> : IAzureQueue<T>
     {
         QueueProperties properties = await _queueClient.GetPropertiesAsync();
 
-        if (properties.ApproximateMessagesCount > 0)
-        {
-            QueueMessage queueMessage = await _queueClient.ReceiveMessageAsync(
-                TimeSpan.FromMinutes(1)
-            );
+        if (properties.ApproximateMessagesCount <= 0) return null;
+        
+        QueueMessage queueMessage = await _queueClient.ReceiveMessageAsync(
+            TimeSpan.FromMinutes(1)
+        );
 
-            if (queueMessage != null)
-                return queueMessage;
-        }
+        if (queueMessage != null)
+            return queueMessage;
 
         return null;
     }
@@ -51,7 +50,7 @@ public sealed class AzureQueue<T> : IAzureQueue<T>
     {
         var jsonString = JsonSerializer.Serialize(message);
 
-        string jsonStringBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(jsonString));
+        var jsonStringBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(jsonString));
 
         return jsonStringBase64;
     }

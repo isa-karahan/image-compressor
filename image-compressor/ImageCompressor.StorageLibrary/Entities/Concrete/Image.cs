@@ -11,7 +11,7 @@ public sealed class Image : BaseTableEntity
     public double CompressedSize { get; set; }
     public string URL { get; set; }
 
-    public void SetURL(string blobUrl) =>
+    public void SetUrl(string blobUrl) =>
         URL = IsCompressed
             ? $"{blobUrl}{Blobs.CompressedImages}/{Name}"
             : $"{blobUrl}{Blobs.RawImages}/{Name}";

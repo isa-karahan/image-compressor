@@ -29,8 +29,8 @@ public class Function
 
     [Function(nameof(Function))]
     public async Task Run(
-        [QueueTrigger("imagecompressorqueue", Connection = "AzureStorage")]
-            ImageCompressorQueue queueMessage
+        [QueueTrigger(Queues.ImageCompressor, Connection = "AzureStorage")]
+        ImageCompressorQueue queueMessage
     )
     {
         foreach (var queueImage in queueMessage.Images)
@@ -48,17 +48,18 @@ public class Function
             );
 
             image.IsCompressed = true;
-            image.CompressedSize = compressedImageStream.Length / 1024;
+            image.CompressedSize = compressedImageStream.Length / 1024.0;
 
-            image.SetURL(_blobStorage.BlobUrl);
+            image.SetUrl(_blobStorage.BlobUrl);
 
             await _imageStorage.UpdateAsync(image);
         }
 
         var log = $"""
-            User Id: {queueMessage.UserId}
-            Client Id: {queueMessage.ClientId}
-            """;
+
+                   User Id: {queueMessage.UserId}
+                   Client Id: {queueMessage.ClientId}
+                   """;
 
         _logger.LogInformation(log);
         await _blobStorage.SetLogAsync(log, Logs.ImageCompressorLogs);
@@ -66,7 +67,7 @@ public class Function
         var httpClient = new HttpClient();
 
         await httpClient.GetAsync(
-            $"https://localhost:7257/api/notifications/{queueMessage.ClientId}"
+            $"https://localhost:44340/api/notifications/{queueMessage.ClientId}"
         );
     }
 }

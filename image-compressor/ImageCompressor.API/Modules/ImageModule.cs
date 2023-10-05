@@ -69,21 +69,21 @@ public class ImageModule : ICarterModule
                 IBlobStorage blobStorage
             ) =>
             {
-                var queueMessage = new ImageCompressorQueue { UserId = id, ClientId = clientId, };
+                var queueMessage = new ImageCompressorQueue { UserId = id, ClientId = clientId };
 
                 foreach (var item in pictures)
                 {
                     var image = new Image
                     {
-                        PartitionKey = id.ToString(),
+                        PartitionKey = id,
                         ETag = Azure.ETag.All,
                         Timestamp = DateTime.UtcNow,
                         IsCompressed = false,
-                        RawSize = item.Length / 1024,
+                        RawSize = item.Length / 1024.0
                     };
 
                     image.Name = $"{image.RowKey}{Path.GetExtension(item.FileName)}";
-                    image.SetURL(blobStorage.BlobUrl);
+                    image.SetUrl(blobStorage.BlobUrl);
 
                     await blobStorage.UploadAsync(
                         item.OpenReadStream(),
@@ -94,7 +94,7 @@ public class ImageModule : ICarterModule
                     await imageStorage.AddAsync(image);
 
                     queueMessage.Images.Add(
-                        new QueueImage { ImageId = image.RowKey, ImageName = image.Name, }
+                        new QueueImage { ImageId = image.RowKey, ImageName = image.Name }
                     );
                 }
 
