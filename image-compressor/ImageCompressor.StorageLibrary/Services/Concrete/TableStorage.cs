@@ -1,6 +1,7 @@
 ﻿using Azure.Data.Tables;
 using ImageCompressor.StorageLibrary.Entities.Abstract;
 using ImageCompressor.StorageLibrary.Services.Abstract;
+using ImageCompressor.StorageLibrary.Utils.Pagination;
 using Microsoft.Extensions.Configuration;
 using System.Linq.Expressions;
 
@@ -27,9 +28,17 @@ public sealed class TableStorage<TEntity> : INoSqlStorage<TEntity>
         return execute.Content as TEntity;
     }
 
-    public async Task<List<TEntity>> All()
+    public async Task<PagedList<TEntity>> AllAsync(
+        int? page = 1,
+        int? pageSize = 100,
+        Expression<Func<TEntity, bool>>? query = default
+    )
     {
-        return await Task.FromResult(_tableClient.Query<TEntity>().ToList());
+        var tableQuery = query is null ? _tableClient.Query<TEntity>() : _tableClient.Query(query);
+
+        return await Task.FromResult(
+            PagedList<TEntity>.Create(tableQuery, page ?? 1, pageSize ?? 100)
+        );
     }
 
     public async Task<TEntity> DeleteAsync(string rowKey, string partitionKey)
@@ -45,13 +54,6 @@ public sealed class TableStorage<TEntity> : INoSqlStorage<TEntity>
         var execute = await _tableClient.GetEntityIfExistsAsync<TEntity>(partitionKey, rowKey);
 
         return execute.Value;
-    }
-
-    public async Task<List<TEntity>> Query(Expression<Func<TEntity, bool>> query)
-    {
-        return await Task.FromResult(
-            _tableClient.Query<TEntity>().AsQueryable().Where(query).ToList()
-        );
     }
 
     public async Task<TEntity> UpdateAsync(TEntity entity)

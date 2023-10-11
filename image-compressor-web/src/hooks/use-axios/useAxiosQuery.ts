@@ -6,7 +6,15 @@ import { AxiosResponse } from "axios";
 import httpClient from "@/lib/http-client";
 import { Result, UseAxiosResponse } from "@/types";
 
-export function useAxiosQuery<T>(url: string): UseAxiosResponse<T> {
+type AxiosQueryProps = {
+  url: string;
+  params?: object;
+};
+
+export function useAxiosQuery<T>({
+  url,
+  params,
+}: AxiosQueryProps): UseAxiosResponse<T> {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -14,7 +22,9 @@ export function useAxiosQuery<T>(url: string): UseAxiosResponse<T> {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const response: AxiosResponse<Result<T>> = await httpClient.get(url);
+      const response: AxiosResponse<Result<T>> = await httpClient.get(url, {
+        params,
+      });
       setData(response.data.data);
 
       const { isSuccess, message } = response.data;
@@ -35,7 +45,7 @@ export function useAxiosQuery<T>(url: string): UseAxiosResponse<T> {
 
   useEffect(() => {
     fetchData();
-  }, [url]);
+  }, [url, params]);
 
   return { data, loading, error, refetch: fetchData };
 }

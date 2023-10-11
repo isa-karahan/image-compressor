@@ -1,8 +1,10 @@
-﻿using System.Linq.Expressions;
+﻿using ImageCompressor.StorageLibrary.Entities.Abstract;
+using ImageCompressor.StorageLibrary.Utils.Pagination;
+using System.Linq.Expressions;
 
 namespace ImageCompressor.StorageLibrary.Services.Abstract;
 
-public interface INoSqlStorage<TEntity>
+public interface INoSqlStorage<TEntity> where TEntity : BaseTableEntity
 {
     Task<TEntity> AddAsync(TEntity entity);
 
@@ -12,7 +14,9 @@ public interface INoSqlStorage<TEntity>
 
     Task<TEntity> GetAsync(string rowKey, string partitionKey);
 
-    Task<List<TEntity>> All();
-
-    Task<List<TEntity>> Query(Expression<Func<TEntity, bool>> query);
+    Task<PagedList<TEntity>> AllAsync(
+        int? page = 1,
+        int? pageSize = 100,
+        Expression<Func<TEntity, bool>>? query = default
+    );
 }

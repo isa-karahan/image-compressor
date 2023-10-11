@@ -14,5 +14,5 @@ public interface IBlobStorage
 
     Task<List<string>> GetLogAsync(string fileName);
 
-    Task<List<string>> GetNames(string containerName);
+    Task<List<string>> GetNamesAsync(string containerName);
 }

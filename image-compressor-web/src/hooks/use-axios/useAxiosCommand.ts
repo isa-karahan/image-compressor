@@ -17,7 +17,7 @@ type UseAxiosCommandFunctionProps = {
   params?: Object;
 };
 
-export function useAxiosCommand<T>({
+export function useAxiosCommand({
   url,
   method,
   headers,

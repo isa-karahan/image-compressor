@@ -22,7 +22,7 @@ import { User } from "@/types";
 import { useGetUsers, useUploadImage } from "@/hooks";
 
 export function ImageUpload({ onComplete }: { onComplete: () => void }) {
-  const { data: users, loading } = useGetUsers();
+  const { data, loading } = useGetUsers({ page: 1, pageSize: 999999 });
   const uploadImage = useUploadImage();
 
   const connection = useMemo(
@@ -104,12 +104,12 @@ export function ImageUpload({ onComplete }: { onComplete: () => void }) {
           <Form>
             <Grid container spacing={2}>
               <Grid item xs={12}>
-                {users && (
+                {data && (
                   <Autocomplete
                     disablePortal
                     size="small"
                     loading={loading}
-                    options={users}
+                    options={data.items}
                     onBlur={handleBlur}
                     onChange={(_, value) =>
                       setFieldValue("userId", value?.rowKey)

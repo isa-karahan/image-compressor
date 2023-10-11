@@ -18,11 +18,11 @@ public class ImageModule : ICarterModule
             "",
             async (INoSqlStorage<Image> imageStorage, INoSqlStorage<User> userStorage) =>
             {
-                var images = await imageStorage.All();
+                var images = await imageStorage.AllAsync();
 
-                var imageDtos = new List<ImageDto>(images.Count);
+                var imageDtos = new List<ImageDto>(images.Items.Count);
 
-                foreach (var image in images)
+                foreach (var image in images.Items)
                 {
                     var user = await userStorage.GetAsync(
                         image.PartitionKey,
@@ -45,16 +45,6 @@ public class ImageModule : ICarterModule
                 }
 
                 return Result.Success(imageDtos);
-            }
-        );
-
-        group.MapGet(
-            "/users/{id}",
-            async (string id, INoSqlStorage<Image> imageStorage) =>
-            {
-                var userImages = await imageStorage.Query(image => image.PartitionKey == id);
-
-                return Result.Success(userImages);
             }
         );
 

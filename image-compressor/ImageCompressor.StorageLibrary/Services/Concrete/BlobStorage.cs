@@ -62,7 +62,7 @@ public sealed class BlobStorage : IBlobStorage
         return logs;
     }
 
-    public async Task<List<string>> GetNames(string containerName)
+    public async Task<List<string>> GetNamesAsync(string containerName)
     {
         var blobNames = new List<string>();
 

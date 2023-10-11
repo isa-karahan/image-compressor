@@ -4,7 +4,7 @@ import { useAxiosCommand, useAxiosQuery } from "..";
 export function useGetImages(id?: string) {
   const url = id ? `images/users/${id}` : "images";
 
-  return useAxiosQuery<Array<Image>>(url);
+  return useAxiosQuery<Array<Image>>({url});
 }
 
 export function useDeleteImage() {

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import {
+  Backdrop,
   Button,
   Grid,
   Dialog,
@@ -10,10 +11,10 @@ import {
   DialogTitle,
   IconButton,
 } from "@mui/material";
-import { DataGrid, GridCloseIcon, GridColDef } from "@mui/x-data-grid";
+import { GridCloseIcon, GridColDef } from "@mui/x-data-grid";
 
 import { User } from "@/types";
-import { UserForm } from "@/components";
+import { DataGrid, UserForm } from "@/components";
 import { useDeleteUser, useGetOccupations, useGetUsers } from "@/hooks";
 
 type DialogState = {
@@ -23,11 +24,12 @@ type DialogState = {
 };
 
 export default function Users() {
+  const [pagination, setPagination] = useState({ page: 1, pageSize: 25 });
   const [dialog, setDialog] = useState<DialogState>({
     mode: "create",
     open: false,
   });
-  const { data: users, loading, refetch } = useGetUsers();
+  const { data, loading, refetch } = useGetUsers(pagination);
   const { data: occupations } = useGetOccupations();
   const deleteUser = useDeleteUser();
 
@@ -113,6 +115,10 @@ export default function Users() {
     },
   ];
 
+  if (!data) {
+    return <Backdrop open={loading} />;
+  }
+
   return (
     <Grid container spacing={2}>
       <Grid item>
@@ -145,14 +151,13 @@ export default function Users() {
           Add User
         </Button>
       </Grid>
-      <Grid item xs className="data-grid-container">
+      <Grid item xs>
         <DataGrid
-          autoPageSize
-          disableRowSelectionOnClick
-          loading={loading}
-          rows={users ?? []}
+          pagedList={data}
           columns={columns}
-          getRowId={(row: User) => row.rowKey}
+          setPagination={(p) => {
+            setPagination(p);
+          }}
         />
       </Grid>
     </Grid>

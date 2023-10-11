@@ -14,9 +14,9 @@ public class UserModule : ICarterModule
 
         group.MapGet(
             "",
-            async (INoSqlStorage<User> userStorage) =>
+            async (int? page, int? pageSize, INoSqlStorage<User> userStorage) =>
             {
-                var users = await userStorage.All();
+                var users = await userStorage.AllAsync(page, pageSize);
                 return Result.Success(users);
             }
         );
@@ -34,11 +34,11 @@ public class UserModule : ICarterModule
             "/query",
             async (string query, INoSqlStorage<User> userStorage) =>
             {
-                var result = await userStorage.Query(
-                    u =>
-                        u.Name.Contains(query)
-                        || u.Surname.Contains(query)
-                        || u.Email.Contains(query)
+                var result = await userStorage.AllAsync(
+                    query: u =>
+                           u.Name.Contains(query)
+                           || u.Surname.Contains(query)
+                           || u.Email.Contains(query)
                 );
 
                 return Result.Success(result);

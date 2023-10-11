@@ -1,16 +1,16 @@
-import { CreateUser, User } from "@/types";
-import { useAxiosCommand, useAxiosQuery } from "..";
+import { CreateUser, PagedList, User } from "@/types";
+import { useAxiosCommand, useAxiosQuery } from "@/hooks";
 
-export function useGetUsers() {
-  return useAxiosQuery<Array<User>>("users");
+export function useGetUsers(params?: object) {
+  return useAxiosQuery<PagedList<User>>({ url: "users", params });
 }
 
 export function useGetOccupations() {
-  return useAxiosQuery<Array<string>>("users/profession");
+  return useAxiosQuery<Array<string>>({ url: "users/profession" });
 }
 
 export function useCreateUser() {
-  return useAxiosCommand<CreateUser>({ url: "users", method: "POST" });
+  return useAxiosCommand({ url: "users", method: "POST" });
 }
 
 export function useDeleteUser() {
