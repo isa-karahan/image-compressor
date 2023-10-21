@@ -6,7 +6,7 @@ using ImageCompressor.StorageLibrary.Services.Abstract;
 
 namespace ImageCompressor.API.Modules;
 
-public class UserModule : ICarterModule
+public sealed class UserModule : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
@@ -14,34 +14,18 @@ public class UserModule : ICarterModule
 
         group.MapGet(
             "",
-            async (int? page, int? pageSize, INoSqlStorage<User> userStorage) =>
+            async (
+                int? page,
+                int? pageSize,
+                string? field,
+                string? sort,
+                string? filterField,
+                string? filterValue,
+                INoSqlStorage<User> userStorage
+            ) =>
             {
-                var users = await userStorage.AllAsync(page, pageSize);
+                var users = await userStorage.AllAsync(page, pageSize, field, sort, filterField, filterValue);
                 return Result.Success(users);
-            }
-        );
-
-        group.MapGet(
-            "/{id}",
-            async (string id, INoSqlStorage<User> userStorage) =>
-            {
-                var user = await userStorage.GetAsync(id, TablePartitionKeys.Users);
-                return Result.Success(user);
-            }
-        );
-
-        group.MapGet(
-            "/query",
-            async (string query, INoSqlStorage<User> userStorage) =>
-            {
-                var result = await userStorage.AllAsync(
-                    query: u =>
-                           u.Name.Contains(query)
-                           || u.Surname.Contains(query)
-                           || u.Email.Contains(query)
-                );
-
-                return Result.Success(result);
             }
         );
 
@@ -49,7 +33,7 @@ public class UserModule : ICarterModule
             "",
             async (User user, INoSqlStorage<User> userStorage) =>
             {
-                user.PartitionKey = TablePartitionKeys.Users;
+                user.PartitionKey = user.Occupation.ToString();
                 user.BirthDate = DateTime.SpecifyKind(user.BirthDate, DateTimeKind.Utc);
 
                 await userStorage.AddAsync(user);
@@ -59,10 +43,10 @@ public class UserModule : ICarterModule
         );
 
         group.MapDelete(
-            "/{id}",
-            async (string id, INoSqlStorage<User> userStorage) =>
+            "",
+            async (string rowKey, string partitionKey, INoSqlStorage<User> userStorage) =>
             {
-                await userStorage.DeleteAsync(id, TablePartitionKeys.Users);
+                await userStorage.DeleteAsync(rowKey, partitionKey);
 
                 return Result.Success("User deleted.");
             }
@@ -78,16 +62,6 @@ public class UserModule : ICarterModule
                 await userStorage.UpdateAsync(user);
 
                 return Result.Success("User updated.");
-            }
-        );
-
-        group.MapGet(
-            "/profession",
-            async () =>
-            {
-                var occupations = await Task.FromResult(Enum.GetNames(typeof(Profession)));
-
-                return Result.Success(occupations);
             }
         );
     }

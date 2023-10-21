@@ -19,11 +19,11 @@ public sealed class PagedList<T> where T : BaseTableEntity
     public bool HasNextPage => Page * PageSize < TotalCount;
     public bool HasPreviousPage => Page > 1;
 
-    public static PagedList<T> Create(Azure.Pageable<T> query, int page, int pageSize)
+    public static PagedList<T> Create(IQueryable<T> query, int page = 0, int pageSize = 100)
     {
         var totalCount = query.Count();
 
-        var items = query.Skip((page - 1) * pageSize)
+        var items = query.Skip(page * pageSize)
             .Take(pageSize).ToList();
 
         return new(items, page, pageSize, totalCount);

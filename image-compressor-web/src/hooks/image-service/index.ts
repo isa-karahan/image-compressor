@@ -1,10 +1,8 @@
 import { Image } from "@/types";
 import { useAxiosCommand, useAxiosQuery } from "..";
 
-export function useGetImages(id?: string) {
-  const url = id ? `images/users/${id}` : "images";
-
-  return useAxiosQuery<Array<Image>>({url});
+export function useGetImages() {
+  return useAxiosQuery<Array<Image>>({ url: "images" });
 }
 
 export function useDeleteImage() {
@@ -13,7 +11,7 @@ export function useDeleteImage() {
 
 export function useUploadImage() {
   return useAxiosCommand({
-    url: "images/users",
+    url: "images",
     method: "POST",
     headers: { "Content-Type": "multipart/form-data" },
   });

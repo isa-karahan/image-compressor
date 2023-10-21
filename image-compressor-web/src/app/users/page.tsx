@@ -11,11 +11,11 @@ import {
   DialogTitle,
   IconButton,
 } from "@mui/material";
-import { GridCloseIcon, GridColDef } from "@mui/x-data-grid";
+import { GridCloseIcon, GridColDef, GridSortItem } from "@mui/x-data-grid";
 
-import { User } from "@/types";
+import { User, professions } from "@/types";
 import { DataGrid, UserForm } from "@/components";
-import { useDeleteUser, useGetOccupations, useGetUsers } from "@/hooks";
+import { useDataFetchingHelper, useDeleteUser, useGetUsers } from "@/hooks";
 
 type DialogState = {
   mode: "edit" | "create";
@@ -24,53 +24,68 @@ type DialogState = {
 };
 
 export default function Users() {
-  const [pagination, setPagination] = useState({ page: 1, pageSize: 25 });
   const [dialog, setDialog] = useState<DialogState>({
     mode: "create",
     open: false,
   });
-  const { data, loading, refetch } = useGetUsers(pagination);
-  const { data: occupations } = useGetOccupations();
+
+  const {
+    state,
+    handleFilterChange,
+    handlePaginationChange,
+    handleSortChange,
+  } = useDataFetchingHelper({
+    field: "name",
+  });
+  const { data, loading, refetch } = useGetUsers(state);
   const deleteUser = useDeleteUser();
 
-  const onDelete = async (id: string) => {
-    const result = await deleteUser({ id });
+  async function onDelete(rowKey: string, partitionKey: string) {
+    const result = await deleteUser({ params: { rowKey, partitionKey } });
 
     if (result.isSuccess) {
       refetch();
     }
-  };
-  const onEdit = async (user: User) => {
+  }
+
+  async function onEdit(user: User) {
     console.log(user);
     setDialog({
       user,
       mode: "edit",
       open: true,
     });
-  };
+  }
 
-  const handleAddUser = () => {
+  function handleAddUser() {
     setDialog({ mode: "create", open: true });
-  };
+  }
 
-  const handleClose = () => {
+  function handleClose() {
     setDialog({ mode: "create", open: false });
     refetch();
-  };
+  }
 
-  const columns: GridColDef[] = [
-    { field: "name", headerName: "Name", width: 140 },
-    { field: "surname", headerName: "Surname", width: 140 },
-    { field: "email", headerName: "Email", width: 220 },
+  const columns: GridColDef<User>[] = [
+    { field: "name", headerName: "Name", width: 140, headerAlign: "center" },
+    {
+      field: "surname",
+      headerName: "Surname",
+      width: 140,
+      headerAlign: "center",
+    },
+    { field: "email", headerName: "Email", width: 220, headerAlign: "center" },
     {
       field: "birthDate",
       headerName: "Birth Date",
+      headerAlign: "center",
       width: 120,
       renderCell: ({ row }) => format(new Date(row.birthDate), "dd/MM/yyyy"),
     },
     {
       field: "gender",
       headerName: "Gender",
+      headerAlign: "center",
       width: 100,
       renderCell: ({ row }) => {
         switch (row.gender) {
@@ -86,27 +101,29 @@ export default function Users() {
     {
       field: "occupation",
       headerName: "Occupation",
+      headerAlign: "center",
       width: 150,
-      renderCell: ({ row }) => occupations && occupations[row.occupation],
+      renderCell: ({ row }) => professions[row.occupation],
     },
     {
       field: "actions",
       headerName: "Actions",
+      headerAlign: "center",
       width: 200,
-      renderCell: (params) => (
+      renderCell: ({ row }) => (
         <div>
           <Button
             className="mr-1"
             variant="outlined"
             color="primary"
-            onClick={() => onEdit(params.row)}
+            onClick={() => onEdit(row)}
           >
             Edit
           </Button>
           <Button
             variant="outlined"
             color="error"
-            onClick={() => onDelete(params.row.rowKey)}
+            onClick={() => onDelete(row.rowKey, row.partitionKey)}
           >
             Delete
           </Button>
@@ -155,9 +172,9 @@ export default function Users() {
         <DataGrid
           pagedList={data}
           columns={columns}
-          setPagination={(p) => {
-            setPagination(p);
-          }}
+          onPaginationChange={handlePaginationChange}
+          onSortChange={handleSortChange}
+          onFilterChange={handleFilterChange}
         />
       </Grid>
     </Grid>

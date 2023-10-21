@@ -12,3 +12,25 @@ export type User = CreateUser & {
   partitionKey: string;
   timestamp: Date;
 };
+
+export const professions = [
+  "Doctor",
+  "Engineer",
+  "Teacher",
+  "Lawyer",
+  "Artist",
+  "Chef",
+  "Scientist",
+  "Nurse",
+  "Architect",
+  "Writer",
+  "PoliceOfficer",
+  "Firefighter",
+  "Farmer",
+  "Designer",
+  "Accountant",
+  "Athlete",
+  "Musician",
+  "Actor",
+  "Other",
+];

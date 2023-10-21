@@ -5,7 +5,7 @@ using ImageCompressor.StorageLibrary.Services.Abstract;
 
 namespace ImageCompressor.API.Modules;
 
-public class LogModule : ICarterModule
+public sealed class LogModule : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {

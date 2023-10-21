@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import NextImage from "next/image";
-import { DataGrid, GridCloseIcon } from "@mui/x-data-grid";
+import { DataGrid, GridCloseIcon, GridColDef } from "@mui/x-data-grid";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import Done from "@mui/icons-material/Done";
 import Close from "@mui/icons-material/Close";
@@ -36,12 +36,13 @@ export default function Images() {
     refetch();
   };
 
-  const columns = [
+  const columns: GridColDef<Image>[] = [
     {
       field: "url",
       headerName: "Image",
+      headerAlign: "center",
       width: 200,
-      renderCell: ({ row }: { row: Image }) => (
+      renderCell: ({ row }) => (
         <>
           <NextImage
             src={row.url}
@@ -80,25 +81,45 @@ export default function Images() {
         </>
       ),
     },
-    { field: "userName", headerName: "User Name", width: 150 },
+    {
+      field: "name",
+      headerName: "Name",
+      width: 280,
+      align: "center",
+      headerAlign: "center",
+    },
+    {
+      field: "userName",
+      headerName: "User Name",
+      width: 150,
+      headerAlign: "center",
+      align: "center",
+    },
     {
       field: "isCompressed",
       headerName: "Compressed",
-      width: 120,
-      renderCell: ({ row }: { row: Image }) =>
-        row.isCompressed ? <Done /> : <Close />,
+      align: "center",
+      width: 100,
+      headerAlign: "center",
+      renderCell: ({ row }) => (row.isCompressed ? <Done /> : <Close />),
     },
-    { field: "rawSize", headerName: "Raw Size (KB)", width: 150 },
     {
-      field: "compressedSize",
-      headerName: "Compressed Size (KB)",
-      width: 180,
+      field: "rawSize",
+      headerName: "Size (KB)",
+      align: "center",
+      headerAlign: "center",
+      width: 150,
+      renderCell: ({ row }) =>
+        row.isCompressed
+          ? `${row.rawSize.toFixed(2)} >> ${row.compressedSize.toFixed(2)}`
+          : row.rawSize.toFixed(2),
     },
     {
       field: "actions",
       headerName: "Actions",
+      headerAlign: "center",
       width: 220,
-      renderCell: ({ row }: { row: Image }) => (
+      renderCell: ({ row }) => (
         <Box sx={{ display: "flex", gap: "10px" }}>
           <Button
             variant="outlined"

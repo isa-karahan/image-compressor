@@ -15,16 +15,18 @@ public class Function
     private readonly IBlobStorage _blobStorage;
     private readonly ILogger<Function> _logger;
     private readonly INoSqlStorage<Image> _imageStorage;
+    private readonly INoSqlStorage<User> _userStorage;
 
     public Function(
         IBlobStorage blobStorage,
         ILogger<Function> logger,
-        INoSqlStorage<Image> imageStorage
-    )
+        INoSqlStorage<Image> imageStorage,
+        INoSqlStorage<User> userStorage)
     {
         _logger = logger;
         _blobStorage = blobStorage;
         _imageStorage = imageStorage;
+        _userStorage = userStorage;
     }
 
     [Function(nameof(Function))]
@@ -33,9 +35,13 @@ public class Function
         ImageCompressorQueue queueMessage
     )
     {
+        var imagePartitionKey = Image.GeneratePartitionKey(queueMessage.UserRowKey, queueMessage.UserPartitionKey);
+
+        var totalCompressedSize = 0.0;
+
         foreach (var queueImage in queueMessage.Images)
         {
-            var image = await _imageStorage.GetAsync(queueImage.ImageId, queueMessage.UserId);
+            var image = await _imageStorage.GetAsync(queueImage.ImageRowKey, imagePartitionKey);
 
             var rawImage = await _blobStorage.DownloadAsync(queueImage.ImageName, Blobs.RawImages);
 
@@ -47,18 +53,22 @@ public class Function
                 Blobs.CompressedImages
             );
 
-            image.IsCompressed = true;
-            image.CompressedSize = compressedImageStream.Length / 1024.0;
+            image.UpdateAsCompressed(compressedImageStream.Length, _blobStorage.BlobUrl);
 
-            image.SetUrl(_blobStorage.BlobUrl);
+            totalCompressedSize += image.RawSize - image.CompressedSize;
 
             await _imageStorage.UpdateAsync(image);
         }
 
+        var user = await _userStorage.GetAsync(queueMessage.UserRowKey, queueMessage.UserPartitionKey);
+
         var log = $"""
 
-                   User Id: {queueMessage.UserId}
+                   User Row Key: {user.RowKey}
+                   User Partition Key: {user.PartitionKey}
+                   User: {user.FullName}
                    Client Id: {queueMessage.ClientId}
+                   Gained Space: {totalCompressedSize:N} KB
                    """;
 
         _logger.LogInformation(log);

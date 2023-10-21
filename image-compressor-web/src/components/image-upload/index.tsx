@@ -19,10 +19,11 @@ import {
 
 import { publicRuntimeConfig } from "@/../next.config";
 import { User } from "@/types";
-import { useGetUsers, useUploadImage } from "@/hooks";
+import { useDataFetchingHelper, useGetUsers, useUploadImage } from "@/hooks";
 
 export function ImageUpload({ onComplete }: { onComplete: () => void }) {
-  const { data, loading } = useGetUsers({ page: 1, pageSize: 999999 });
+  const { state } = useDataFetchingHelper({ page: 0, pageSize: 999999 });
+  const { data, loading } = useGetUsers(state);
   const uploadImage = useUploadImage();
 
   const connection = useMemo(
@@ -55,7 +56,7 @@ export function ImageUpload({ onComplete }: { onComplete: () => void }) {
   const formikConfig = useMemo(
     () => ({
       initialValues: {
-        userId: "",
+        user: null,
         images: [],
       },
       validationSchema: yup.object({
@@ -75,7 +76,7 @@ export function ImageUpload({ onComplete }: { onComplete: () => void }) {
           .test("fileSize", "File size too large (max 5MB)", (value) => {
             return value.every((file) => file.size <= 5 * 1024 * 1024);
           }),
-        userId: yup.string().required("User Id field cannot be empty"),
+        user: yup.object<User>().required("User field cannot be empty"),
       }),
     }),
     []
@@ -90,8 +91,11 @@ export function ImageUpload({ onComplete }: { onComplete: () => void }) {
 
     await uploadImage({
       data: formData,
-      id: values.userId,
-      params: { clientId: connection.connectionId },
+      params: {
+        userRowKey: values.user.rowKey,
+        userPartitionKey: values.user.partitionKey,
+        clientId: connection.connectionId,
+      },
     });
 
     onComplete();
@@ -111,9 +115,7 @@ export function ImageUpload({ onComplete }: { onComplete: () => void }) {
                     loading={loading}
                     options={data.items}
                     onBlur={handleBlur}
-                    onChange={(_, value) =>
-                      setFieldValue("userId", value?.rowKey)
-                    }
+                    onChange={(_, value) => setFieldValue("user", value)}
                     getOptionLabel={(user: User) =>
                       `${user.name} ${user.surname} - ${user.email}`
                     }
@@ -123,10 +125,10 @@ export function ImageUpload({ onComplete }: { onComplete: () => void }) {
                         as={TextField}
                         name="fieldName"
                         id="fieldName"
-                        value={values.userId}
+                        value={values.user}
                         onBlur={handleBlur}
-                        error={touched.userId && errors.userId !== undefined}
-                        helperText={touched.userId && errors.userId}
+                        error={touched.user && errors.user !== undefined}
+                        helperText={touched.user && errors.user}
                       />
                     )}
                   />

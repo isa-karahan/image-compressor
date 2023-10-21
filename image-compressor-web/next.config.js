@@ -5,7 +5,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "azurecampstorage.blob.core.windows.net",
+        hostname: "imagecompressorstorage.blob.core.windows.net",
       },
     ],
   },

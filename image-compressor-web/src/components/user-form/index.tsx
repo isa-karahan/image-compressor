@@ -14,8 +14,8 @@ import {
   Grid,
 } from "@mui/material";
 
-import { useCreateUser, useGetOccupations, useUpdateUser } from "@/hooks";
-import { User } from "@/types";
+import { useCreateUser, useUpdateUser } from "@/hooks";
+import { professions, User } from "@/types";
 
 export type UserFormProps = {
   mode: "edit" | "create";
@@ -35,8 +35,6 @@ const validationSchema = Yup.object({
 export function UserForm({ mode, user, onClose }: UserFormProps) {
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
-
-  const { data: occupations } = useGetOccupations();
 
   const isCreate = mode === "create";
 
@@ -166,7 +164,7 @@ export function UserForm({ mode, user, onClose }: UserFormProps) {
                   formik.touched.occupation && Boolean(formik.errors.occupation)
                 }
               >
-                {occupations?.map((occupation, index) => (
+                {professions?.map((occupation, index) => (
                   <MenuItem key={occupation} value={index}>
                     {occupation}
                   </MenuItem>

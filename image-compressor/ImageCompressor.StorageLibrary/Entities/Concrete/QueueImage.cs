@@ -2,6 +2,6 @@
 
 public sealed class QueueImage
 {
-    public string ImageId { get; set; }
+    public string ImageRowKey { get; set; }
     public string ImageName { get; set; }
 }

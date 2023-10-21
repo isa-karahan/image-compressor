@@ -1,12 +1,8 @@
-import { CreateUser, PagedList, User } from "@/types";
+import { PagedList, User } from "@/types";
 import { useAxiosCommand, useAxiosQuery } from "@/hooks";
 
 export function useGetUsers(params?: object) {
   return useAxiosQuery<PagedList<User>>({ url: "users", params });
-}
-
-export function useGetOccupations() {
-  return useAxiosQuery<Array<string>>({ url: "users/profession" });
 }
 
 export function useCreateUser() {

@@ -22,8 +22,8 @@ export default function ImageLogs() {
             <Typography
               key={index}
               gutterBottom
-              className={index % 3 === 0 ? "mt-3" : ""}
-              variant={index % 3 === 0 ? "h6" : "body1"}
+              className={index % 6 === 0 ? "mt-3" : ""}
+              variant={index % 6 === 0 ? "h6" : "body1"}
             >
               {log}
             </Typography>

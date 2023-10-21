@@ -15,8 +15,12 @@ public interface INoSqlStorage<TEntity> where TEntity : BaseTableEntity
     Task<TEntity> GetAsync(string rowKey, string partitionKey);
 
     Task<PagedList<TEntity>> AllAsync(
-        int? page = 1,
+        int? page = 0,
         int? pageSize = 100,
+        string? sortField = null,
+        string? sort = "asc",
+        string? filterField = null,
+        string? filterValue = null,
         Expression<Func<TEntity, bool>>? query = default
     );
 }
