@@ -3,6 +3,8 @@ using ImageCompressor.API.Results;
 using ImageCompressor.StorageLibrary.Constants;
 using ImageCompressor.StorageLibrary.Entities.Concrete;
 using ImageCompressor.StorageLibrary.Services.Abstract;
+using ImageCompressor.StorageLibrary.Utils;
+using ImageCompressor.StorageLibrary.Utils.Extensions;
 
 namespace ImageCompressor.API.Modules;
 
@@ -15,17 +17,14 @@ public sealed class UserModule : ICarterModule
         group.MapGet(
             "",
             async (
-                int? page,
-                int? pageSize,
-                string? field,
-                string? sort,
-                string? filterField,
-                string? filterValue,
-                INoSqlStorage<User> userStorage
+                INoSqlStorage<User> userStorage,
+                HttpContext httpContext
             ) =>
             {
-                var users = await userStorage.AllAsync(page, pageSize, field, sort, filterField, filterValue);
-                return Result.Success(users);
+                var userQuery = await userStorage.AllAsync();
+                return Result.Success(
+                    userQuery.ToPagedList(QueryParameters.FromRequest(httpContext))
+                    );
             }
         );
 

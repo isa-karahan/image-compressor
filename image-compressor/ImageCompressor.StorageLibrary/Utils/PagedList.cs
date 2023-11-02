@@ -1,8 +1,6 @@
-﻿using ImageCompressor.StorageLibrary.Entities.Abstract;
+﻿namespace ImageCompressor.StorageLibrary.Utils;
 
-namespace ImageCompressor.StorageLibrary.Utils.Pagination;
-
-public sealed class PagedList<T> where T : BaseTableEntity
+public sealed class PagedList<T>
 {
     private PagedList(List<T> items, int page, int pageSize, int totalCount)
     {
@@ -11,13 +9,13 @@ public sealed class PagedList<T> where T : BaseTableEntity
         PageSize = pageSize;
         TotalCount = totalCount;
     }
-    public List<T> Items { get; }
 
+    public List<T> Items { get; }
     public int Page { get; }
     public int PageSize { get; }
     public int TotalCount { get; }
-    public bool HasNextPage => Page * PageSize < TotalCount;
-    public bool HasPreviousPage => Page > 1;
+    public bool HasNextPage => (Page + 1) * PageSize < TotalCount;
+    public bool HasPreviousPage => Page > 0;
 
     public static PagedList<T> Create(IQueryable<T> query, int page = 0, int pageSize = 100)
     {
@@ -26,6 +24,6 @@ public sealed class PagedList<T> where T : BaseTableEntity
         var items = query.Skip(page * pageSize)
             .Take(pageSize).ToList();
 
-        return new(items, page, pageSize, totalCount);
+        return new PagedList<T>(items, page, pageSize, totalCount);
     }
 }

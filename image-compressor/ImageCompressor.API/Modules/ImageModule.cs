@@ -4,6 +4,8 @@ using ImageCompressor.API.Results;
 using ImageCompressor.StorageLibrary.Constants;
 using ImageCompressor.StorageLibrary.Entities.Concrete;
 using ImageCompressor.StorageLibrary.Services.Abstract;
+using ImageCompressor.StorageLibrary.Utils;
+using ImageCompressor.StorageLibrary.Utils.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ImageCompressor.API.Modules;
@@ -16,35 +18,35 @@ public sealed class ImageModule : ICarterModule
 
         group.MapGet(
             "",
-            async (INoSqlStorage<Image> imageStorage, INoSqlStorage<User> userStorage) =>
+            async (INoSqlStorage<Image> imageStorage,
+                INoSqlStorage<User> userStorage,
+                HttpContext httpContext) =>
             {
-                var images = await imageStorage.AllAsync();
-
-                var imageDtos = new List<ImageDto>(images.Items.Count);
-
+                var imageQuery = await imageStorage.AllAsync();
+                
+                var images = imageQuery.Select(image => new ImageDto
+                    {
+                        URL = image.URL,
+                        Name = image.Name,
+                        RowKey = image.RowKey,
+                        RawSize = image.RawSize,
+                        IsCompressed = image.IsCompressed,
+                        PartitionKey = image.PartitionKey,
+                        CompressedSize = image.CompressedSize
+                    })
+                    .ToPagedList(QueryParameters.FromRequest(httpContext));
+                
                 foreach (var image in images.Items)
                 {
                     var user = await userStorage.GetAsync(
-                        image.GetUserRowKey(),
-                        image.GetUserPartitionKey()
+                        Image.GetUserRowKey(image.PartitionKey),
+                        Image.GetUserPartitionKey(image.PartitionKey)
                     );
 
-                    imageDtos.Add(
-                        new ImageDto
-                        {
-                            CompressedSize = image.CompressedSize,
-                            IsCompressed = image.IsCompressed,
-                            Name = image.Name,
-                            PartitionKey = image.PartitionKey,
-                            RawSize = image.RawSize,
-                            RowKey = image.RowKey,
-                            URL = image.URL,
-                            UserName = user.FullName
-                        }
-                    );
+                    image.UserName = user.FullName;
                 }
-
-                return Result.Success(imageDtos);
+                
+                return Result.Success(images);
             }
         );
 

@@ -6,11 +6,12 @@ import {
   GridPaginationModel,
   GridSortModel,
   DataGrid as MuiDataGrid,
+  DataGridProps as MuiDataGridProps,
 } from "@mui/x-data-grid";
 
 import { PagedList } from "@/types";
 
-type DataGridProps = {
+type DataGridProps = Partial<MuiDataGridProps> & {
   pagedList: PagedList<any>;
   columns: GridColDef[];
   onSortChange?: (sort: GridSortModel) => void;
@@ -27,10 +28,12 @@ export function DataGrid({
   onSortChange,
   onFilterChange,
   onPaginationChange,
+  ...rest
 }: DataGridProps) {
   return (
     <Box className="data-grid-container">
       <MuiDataGrid
+        {...rest}
         rows={pagedList.items}
         columns={columns}
         getRowId={(row) => row.rowKey}

@@ -20,8 +20,10 @@ public sealed class Image : BaseTableEntity
         => $"{partitionKey}@{rowKey}";
 
     public string GetUserPartitionKey() => PartitionKey.Split("@")[0];
-
     public string GetUserRowKey() => PartitionKey.Split("@")[1];
+
+    public static string GetUserPartitionKey(string partitionKey) => partitionKey.Split("@")[0];
+    public static string GetUserRowKey(string partitionKey) => partitionKey.Split("@")[1];
 
     public void UpdateAsCompressed(long compressedSize, string blobUrl)
     {

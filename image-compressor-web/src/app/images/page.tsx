@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import NextImage from "next/image";
-import { DataGrid, GridCloseIcon, GridColDef } from "@mui/x-data-grid";
+import { GridCloseIcon, GridColDef } from "@mui/x-data-grid";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import Done from "@mui/icons-material/Done";
 import Close from "@mui/icons-material/Close";
 import {
+  Backdrop,
   Box,
   Button,
   Dialog,
@@ -17,24 +18,32 @@ import {
 } from "@mui/material";
 
 import { Image } from "@/types";
-import { useDeleteImage, useGetImages } from "@/hooks";
-import { ImageUpload } from "@/components";
+import { DataGrid, ImageUpload } from "@/components";
+import { useDataFetchingHelper, useDeleteImage, useGetImages } from "@/hooks";
 
 export default function Images() {
   const [open, setOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState("");
 
-  const { data: images, refetch, loading } = useGetImages();
+  const {
+    state,
+    handleFilterChange,
+    handlePaginationChange,
+    handleSortChange,
+  } = useDataFetchingHelper({
+    field: "name",
+  });
+  const { data, refetch, loading } = useGetImages();
   const deleteImage = useDeleteImage();
 
-  const handleClose = () => {
+  function handleClose() {
     setOpen(false);
-  };
+  }
 
-  const onUploadCompleted = () => {
+  function onUploadCompleted() {
     setOpen(false);
     refetch();
-  };
+  }
 
   const columns: GridColDef<Image>[] = [
     {
@@ -156,6 +165,10 @@ export default function Images() {
     },
   ];
 
+  if (!data) {
+    return <Backdrop open={loading} />;
+  }
+
   return (
     <Box>
       <Grid container spacing={1}>
@@ -169,15 +182,14 @@ export default function Images() {
             Upload Image
           </Button>
         </Grid>
-        <Grid item xs={12} className="data-grid-container">
+        <Grid item xs={12}>
           <DataGrid
             columns={columns}
-            rows={images ?? []}
-            loading={loading}
-            getRowId={(row) => row.rowKey}
-            autoPageSize
-            disableRowSelectionOnClick
+            pagedList={data}
             rowHeight={120}
+            onPaginationChange={handlePaginationChange}
+            onSortChange={handleSortChange}
+            onFilterChange={handleFilterChange}
           />
         </Grid>
       </Grid>
