@@ -1,8 +1,8 @@
 import { Image, PagedList } from "@/types";
 import { useAxiosCommand, useAxiosQuery } from "..";
 
-export function useGetImages() {
-  return useAxiosQuery<PagedList<Image>>({ url: "images" });
+export function useGetImages(params: object) {
+  return useAxiosQuery<PagedList<Image>>({ params, url: "images" });
 }
 
 export function useDeleteImage() {

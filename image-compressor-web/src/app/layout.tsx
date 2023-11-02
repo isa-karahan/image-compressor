@@ -2,9 +2,9 @@
 
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { ThemeProvider } from "next-themes";
 import Container from "@mui/material/Container";
 import { ToastContainer } from "react-toastify";
-import { ThemeProvider } from "next-themes";
 
 import { MuiThemeProvider, ResponsiveAppBar } from "@/components";
 

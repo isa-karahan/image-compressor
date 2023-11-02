@@ -7,7 +7,6 @@ import AttachFileIcon from "@mui/icons-material/AttachFile";
 import Done from "@mui/icons-material/Done";
 import Close from "@mui/icons-material/Close";
 import {
-  Backdrop,
   Box,
   Button,
   Dialog,
@@ -18,7 +17,7 @@ import {
 } from "@mui/material";
 
 import { Image } from "@/types";
-import { DataGrid, ImageUpload } from "@/components";
+import { DataGrid, ImageUpload, Loader } from "@/components";
 import { useDataFetchingHelper, useDeleteImage, useGetImages } from "@/hooks";
 
 export default function Images() {
@@ -33,7 +32,7 @@ export default function Images() {
   } = useDataFetchingHelper({
     field: "name",
   });
-  const { data, refetch, loading } = useGetImages();
+  const { data, refetch, loading } = useGetImages(state);
   const deleteImage = useDeleteImage();
 
   function handleClose() {
@@ -50,7 +49,9 @@ export default function Images() {
       field: "url",
       headerName: "Image",
       headerAlign: "center",
-      width: 200,
+      minWidth: 200,
+      sortable: false,
+      filterable: false,
       renderCell: ({ row }) => (
         <>
           <NextImage
@@ -93,22 +94,24 @@ export default function Images() {
     {
       field: "name",
       headerName: "Name",
-      width: 280,
+      minWidth: 280,
       align: "center",
       headerAlign: "center",
     },
     {
       field: "userName",
       headerName: "User Name",
-      width: 150,
+      minWidth: 150,
       headerAlign: "center",
       align: "center",
+      sortable: false,
+      filterable: false,
     },
     {
       field: "isCompressed",
       headerName: "Compressed",
       align: "center",
-      width: 100,
+      minWidth: 100,
       headerAlign: "center",
       renderCell: ({ row }) => (row.isCompressed ? <Done /> : <Close />),
     },
@@ -117,7 +120,7 @@ export default function Images() {
       headerName: "Size (KB)",
       align: "center",
       headerAlign: "center",
-      width: 150,
+      minWidth: 150,
       renderCell: ({ row }) =>
         row.isCompressed
           ? `${row.rawSize.toFixed(2)} >> ${row.compressedSize.toFixed(2)}`
@@ -127,7 +130,7 @@ export default function Images() {
       field: "actions",
       headerName: "Actions",
       headerAlign: "center",
-      width: 220,
+      minWidth: 220,
       renderCell: ({ row }) => (
         <Box sx={{ display: "flex", gap: "10px" }}>
           <Button
@@ -166,7 +169,7 @@ export default function Images() {
   ];
 
   if (!data) {
-    return <Backdrop open={loading} />;
+    return <Loader loading={loading} />;
   }
 
   return (

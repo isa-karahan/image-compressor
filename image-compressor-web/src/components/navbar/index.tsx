@@ -12,14 +12,17 @@ import MenuItem from "@mui/material/MenuItem";
 import Container from "@mui/material/Container";
 import MenuIcon from "@mui/icons-material/Menu";
 import IconButton from "@mui/material/IconButton";
+import ImageIcon from "@mui/icons-material/Image";
 import Typography from "@mui/material/Typography";
+import PersonIcon from "@mui/icons-material/Person";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
+import AnalyticsIcon from "@mui/icons-material/Analytics";
 import LightModeIcon from "@mui/icons-material/LightMode";
 
 const pages = [
-  { name: "Users", url: "/users" },
-  { name: "Images", url: "/images" },
-  { name: "Image Logs", url: "/images/logs" },
+  { name: "Users", url: "/users", icon: <PersonIcon /> },
+  { name: "Images", url: "/images", icon: <ImageIcon /> },
+  { name: "Image Logs", url: "/images/logs", icon: <AnalyticsIcon /> },
 ];
 
 export function ResponsiveAppBar() {
@@ -91,10 +94,13 @@ export function ResponsiveAppBar() {
                 display: { xs: "block", md: "none" },
               }}
             >
-              {pages.map(({ name, url }) => (
+              {pages.map(({ name, url, icon }) => (
                 <Link key={name} href={url}>
                   <MenuItem onClick={handleCloseNavMenu}>
-                    <Typography textAlign="center">{name}</Typography>
+                    <Typography className="text-center flex gap-2">
+                      {icon}
+                      {name}
+                    </Typography>
                   </MenuItem>
                 </Link>
               ))}
@@ -119,9 +125,9 @@ export function ResponsiveAppBar() {
             Image Compressor
           </Typography>
           <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
-            {pages.map(({ name, url }) => (
+            {pages.map(({ name, url, icon }) => (
               <Link key={name} href={url}>
-                <Button sx={{ my: 2, color: "white", display: "block" }}>
+                <Button className="my-2 mx-1 text-white flex" startIcon={icon}>
                   {name}
                 </Button>
               </Link>

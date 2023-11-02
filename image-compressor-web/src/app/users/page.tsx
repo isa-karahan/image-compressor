@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import {
-  Backdrop,
   Button,
   Grid,
   Dialog,
@@ -14,7 +13,7 @@ import {
 import { GridCloseIcon, GridColDef, GridSortItem } from "@mui/x-data-grid";
 
 import { User, professions } from "@/types";
-import { DataGrid, UserForm } from "@/components";
+import { DataGrid, Loader, UserForm } from "@/components";
 import { useDataFetchingHelper, useDeleteUser, useGetUsers } from "@/hooks";
 
 type DialogState = {
@@ -133,7 +132,7 @@ export default function Users() {
   ];
 
   if (!data) {
-    return <Backdrop open={loading} />;
+    return <Loader loading={loading} />;
   }
 
   return (
